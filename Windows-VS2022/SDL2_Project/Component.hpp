@@ -5,7 +5,8 @@
 
 class GameObject;
 
-class Component {
+class Component
+{
 public:
 	Component();
 	Component(std::shared_ptr<GameObject> newGameObject);
@@ -19,3 +20,4 @@ protected:
 };
 
 #endif
+

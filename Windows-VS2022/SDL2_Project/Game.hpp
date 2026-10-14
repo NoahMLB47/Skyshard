@@ -1,57 +1,75 @@
-#pragma once
+#ifndef GAME_HPP
+#define GAME_HPP
 
-#include "Window.hpp"
-#include "Renderer.hpp"
-#include "Timer.hpp"
-#include "InputManager.hpp"
 #include "SDL2_Common.h"
 #include <memory>
 #include <vector>
 #include <string>
 
-class RenderEngine;
+class Window;
+class Renderer;
 class PhysicsEngine;
-class GameObjectFactory;
-class GameObject;
+class Timer;
+class InputManager;
+class RenderEngine;
 class CollisionEngine;
+class NPCManager;
+class TextureManager;
+class UI;
+
+class GameObject;
+class Player;
 
 class Game {
 
 public:
-	~Game();
 
-	void init();
-	void runGameLoop();
-	void cacheTextures();
-	void setupGameState();
-	std::shared_ptr<Renderer> getRenderer();
+    ~Game();
 
-	static const int MAX_GAME_OBJECTS = 32;
-
+    /* Alternative Singleton pattern using shared_ptr */
 	static std::shared_ptr<Game> instance()
 	{
 		static std::shared_ptr<Game> game(new Game());
 		return game;
 	}
 
-	void registerGameObjects(std::shared_ptr<GameObject> newGO);
-	std::shared_ptr<GameObject> findGameObjectByName(std::string name);
+    void init();
+    void setupGameState();
+    void runGameLoop();
+
+    std::shared_ptr<Renderer> getRenderer();
+
+    static const int MAX_GAME_OBJECTS = 200;
+    static const int MAX_NPCS = 18;
+
+    void registerGameObject(std::shared_ptr<GameObject> newGO);
+    std::shared_ptr<GameObject> findGameObjectByName(std::string name);
 
 private:
-	Game();
+    Game();
 
-	std::shared_ptr<Window> gameWindow;
-	std::shared_ptr<Renderer> gameRenderer;
-	std::shared_ptr<RenderEngine> gameRenderEngine;
-	std::shared_ptr<Timer> gameTimer;
-	std::shared_ptr<InputManager> inputManager;
-	std::shared_ptr<PhysicsEngine> gamePhysicsEngine;
-	std::shared_ptr<GameObjectFactory> gameObjectFactory;
-	std::shared_ptr<CollisionEngine> gameCollisionEngine;
-	bool quit;
+    std::shared_ptr<Window> window;
+    std::shared_ptr<Renderer> renderer;
+    std::shared_ptr<Timer> timer;
+    std::shared_ptr<InputManager> inputManager;
+    std::shared_ptr<RenderEngine> renderEngine;
+    std::shared_ptr<PhysicsEngine> physicsEngine;
+    std::shared_ptr<CollisionEngine> collisionEngine;
+    std::shared_ptr<NPCManager> npcManager;
+    std::vector<std::shared_ptr<GameObject>> gameObjects;
+    std::shared_ptr<TextureManager> textureManager;
+    std::shared_ptr<UI> ui;
 
-	std::vector<std::shared_ptr<GameObject>> gameObjects;
-	void runGameLoopOnce();
-	void update(float deltaTime);
-	void draw();
+    // Window control 
+    bool quit = false;
+
+    void runGameLoopOnce();
+    void draw();
+    void update(float deltaTime);
+
+
+
+
 };
+
+#endif

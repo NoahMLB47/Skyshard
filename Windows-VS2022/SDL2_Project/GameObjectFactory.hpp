@@ -1,43 +1,46 @@
-#ifndef GAME_OBJECT_FACTORY_HPP
-#define GAME_OBJECT_FACTORY_HPP
+#ifndef GAMEOBJECTFACTORY_HPP
+#define GAMEOBJECTFACTORY_HPP
+
+#include "SDL2_Common.h"
 
 #include <memory>
 #include <string>
-#include "SDL2_Common.h"
 
-class Player;
-class NPC;
 class Background;
-class Renderer;
+class Player;
+class Renderer; 
+class SmallShip;
 class Bullet;
+class Vector3f;
+class TextureManager;
+class Boss;
+class TextBox;
 
-class GameObjectFactory {
-
+class GameObjectFactory
+{
 private:
+	// Singleton - private constructor!
 	GameObjectFactory();
-	std::shared_ptr<Player> player;
-	std::shared_ptr<Background> background;
-	std::shared_ptr<NPC> npc;
-	std::shared_ptr<Renderer> renderer;
-	std::shared_ptr<Bullet> bullet;
-	std::string name;
+	void init();
+
+	static std::shared_ptr<GameObjectFactory> gof;
+
+    std::shared_ptr<Renderer> renderer;
+	std::shared_ptr<TextureManager> textureManager;
 
 public:
-	~GameObjectFactory();
+	static std::shared_ptr<GameObjectFactory> instance();
+	
+    ~GameObjectFactory();
 
-	std::shared_ptr<Player> createPlayer();
-	std::shared_ptr<NPC> createNPC();
-	std::shared_ptr<Background> createBackground();
-	std::shared_ptr<Bullet> createBullet();
+    std::shared_ptr<Background> createBackground(std::shared_ptr<Vector3f> position);
+    std::shared_ptr<Player> createPlayer();
+    std::shared_ptr<SmallShip> createSmallShip(std::shared_ptr<Vector3f> position);
+	std::shared_ptr<Bullet> createBullet(std::string name);
+	std::shared_ptr<Boss> createBoss();
+	std::shared_ptr<TextBox> createTextBox(std::string message, std::shared_ptr<Vector3f> position, SDL_Renderer* renderer);
 
-	static std::shared_ptr<GameObjectFactory> instance()
-	{
-		static std::shared_ptr<GameObjectFactory> gameObjectFactory(new GameObjectFactory());
-		gameObjectFactory->init();
-		return gameObjectFactory;
-	}
-
-	void init();
+	const int MAX_BULLETS = 32;
 };
 
 #endif

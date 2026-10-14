@@ -1,4 +1,5 @@
 #include "GameObject.hpp"
+
 #include "Transform.hpp"
 #include "Sprite.hpp"
 #include "PhysicsComponent.hpp"
@@ -6,27 +7,31 @@
 
 GameObject::GameObject()
 {
-    transform = nullptr;
     sprite = nullptr;
+    transform = nullptr;
+    physicsComponent = nullptr;
+    collider = nullptr;
     enabled = false;
 }
 
 GameObject::~GameObject()
 {
-    transform.reset();
-    transform = nullptr;
     sprite.reset();
     sprite = nullptr;
+
+    transform.reset();
+    transform = nullptr;
+
+    physicsComponent.reset();
+    physicsComponent = nullptr;
+
+    collider.reset();
+    collider = nullptr;
 }
 
-std::shared_ptr<Transform> GameObject::getTransform()
+void GameObject::setSprite(std::shared_ptr<Sprite> newSprite)
 {
-    return transform;
-}
-
-void GameObject::setTransform(std::shared_ptr<Transform> t)
-{
-    transform = t;
+    sprite = newSprite;
 }
 
 std::shared_ptr<Sprite> GameObject::getSprite()
@@ -34,24 +39,19 @@ std::shared_ptr<Sprite> GameObject::getSprite()
     return sprite;
 }
 
-void GameObject::setSprite(std::shared_ptr<Sprite> s)
+void GameObject::setTransform(std::shared_ptr<Transform> newTransform)
 {
-    sprite = s;
+    transform = newTransform;
 }
 
-void GameObject::setName(std::string n)
+std::shared_ptr<Transform> GameObject::getTransform()
 {
-    name = n;
+    return transform;
 }
 
-std::string GameObject::getName()
+void GameObject::setPhysicsComponent(std::shared_ptr<PhysicsComponent> newPhysicsComponent)
 {
-    return name;
-}
-
-void GameObject::setPhysicsComponent(std::shared_ptr<PhysicsComponent> component)
-{
-    physicsComponent = component;
+    physicsComponent = newPhysicsComponent;
 }
 
 std::shared_ptr<PhysicsComponent> GameObject::getPhysicsComponent()
@@ -59,14 +59,31 @@ std::shared_ptr<PhysicsComponent> GameObject::getPhysicsComponent()
     return physicsComponent;
 }
 
-void GameObject::setCollider(std::shared_ptr<Collider> coll)
+
+
+void GameObject::setCollisionComponent(std::shared_ptr<Collider> newCollider)
 {
-    collider = coll;
+    collider = newCollider;
 }
 
-std::shared_ptr<Collider> GameObject::getCollider()
+std::shared_ptr<Collider> GameObject::getCollisionComponent()
 {
     return collider;
+}
+
+void GameObject::setName(std::string newName)
+{
+    name = newName;
+}
+
+std::string GameObject::getName()
+{
+    return name;
+}
+
+void GameObject::update()
+{
+    
 }
 
 void GameObject::enable()
@@ -81,5 +98,5 @@ void GameObject::disable()
 
 bool GameObject::isEnabled()
 {
-    return enabled;
+   return enabled;
 }

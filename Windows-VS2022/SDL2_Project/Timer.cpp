@@ -1,33 +1,45 @@
 #include "Timer.hpp"
-#include <memory>
-#include "Game.hpp"
+#include "SDL2_Common.h"
+
+std::shared_ptr<Timer> Timer::timer = nullptr;
 
 Timer::Timer()
 {
+	deltaTime = 0.0f;
+    currentTimeIndex = 0.0f;
+    prevTimeIndex = 0.0f;
 }
 
-Timer::~Timer()
+std::shared_ptr<Timer> Timer::instance()
 {
+    if(timer == nullptr)
+    {
+        timer.reset(new Timer());
+        timer->init();
+    }
+    return timer;
 }
 
-float Timer::getDeltaTime()
+void Timer::init()
 {
-	return timeDeltaInSeconds;
+	// Initialise previous time index. 
+	prevTimeIndex = SDL_GetTicks();
 }
 
 void Timer::update()
 {
+    // Calculate time elapsed
+    // Better approaches to this exist - https://gafferongames.com/post/fix_your_timestep/
+
     currentTimeIndex = SDL_GetTicks();
     timeDelta = currentTimeIndex - prevTimeIndex; //time in milliseconds
-    timeDeltaInSeconds = timeDelta * 0.001f; //time in seconds
+    deltaTime = timeDelta * 0.001f; //time in seconds
 
     // Store current time index into prevTimeIndex for next frame
     prevTimeIndex = currentTimeIndex;
 }
 
-
-
-void Timer::init()
+float Timer::getDeltaTime()
 {
-	prevTimeIndex = SDL_GetTicks();
+    return deltaTime;
 }

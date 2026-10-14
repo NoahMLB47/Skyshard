@@ -1,48 +1,51 @@
-#pragma once
+#ifndef GAME_OBJECT_HPP
+#define GAME_OBJECT_HPP
 
 #include <memory>
 #include <string>
 
-class Transform;
 class Sprite;
+class Transform;
 class PhysicsComponent;
 class Collider;
 
 class GameObject {
 
-protected:
-	std::shared_ptr<Transform> transform;
-	std::shared_ptr<Sprite> sprite;
-	std::shared_ptr<PhysicsComponent> physicsComponent;
-	std::string name;
-	std::shared_ptr<Collider> collider;
-	bool enabled;
-
 public:
-	GameObject();
-	virtual ~GameObject();
+    GameObject();
+    virtual ~GameObject();
 
-	std::shared_ptr<Transform> getTransform();
-	void setTransform(std::shared_ptr<Transform> t);
+    void setSprite(std::shared_ptr<Sprite> newSprite);
+    std::shared_ptr<Sprite> getSprite();
 
-	std::shared_ptr<Sprite> getSprite();
-	void setSprite(std::shared_ptr<Sprite> s);
+    void setTransform(std::shared_ptr<Transform> newTransform);
+    std::shared_ptr<Transform> getTransform();
 
-	void setName(std::string n);
-	std::string getName();
+    void setCollisionComponent(std::shared_ptr<Collider> newCollisionComponent);
+    std::shared_ptr<Collider> getCollisionComponent();
 
-	void setPhysicsComponent(std::shared_ptr<PhysicsComponent> component);
-	std::shared_ptr<PhysicsComponent> getPhysicsComponent();
+    void setPhysicsComponent(std::shared_ptr<PhysicsComponent> newPhysicsComponent);
+    std::shared_ptr<PhysicsComponent> getPhysicsComponent();
 
-	void setCollider(std::shared_ptr<Collider> coll);
-	std::shared_ptr<Collider> getCollider();
+    void setName(std::string newName);
+    std::string getName();
 
-	void enable();
-	void disable();
+    void enable();
+    void disable();
 
-	bool isEnabled();
+    bool isEnabled();
 
-	virtual void update() = 0;
+    virtual void update();
 
-	virtual void handleCollision(std::shared_ptr<Collider> other) = 0;
+    virtual void handleCollision(std::shared_ptr<Collider> other) = 0;
+
+protected:
+    std::string name;
+    std::shared_ptr<Sprite> sprite;
+    std::shared_ptr<Transform> transform;
+    std::shared_ptr<PhysicsComponent> physicsComponent;
+    std::shared_ptr<Collider> collider;
+    bool enabled;
 };
+
+#endif

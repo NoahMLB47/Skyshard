@@ -1,25 +1,30 @@
-#pragma once
-#include "SDL2_Common.h"
+#ifndef TIMER_HPP
+#define TIMER_HPP
+
 #include <memory>
 
-class Timer {
-
+class Timer
+{
 private:
+	// Singlton - private constructor!
+	Timer();
+	void init();
+	float deltaTime;
+
+	// Timing variables
 	unsigned int currentTimeIndex;
 	unsigned int prevTimeIndex;
 	unsigned int timeDelta;
-	float timeDeltaInSeconds;
-	Timer();
+
+	static std::shared_ptr<Timer> timer;
 
 public:
-	~Timer();
+	/* Alternative Singlton pattern using shared_ptr */
+	static std::shared_ptr<Timer> instance();
 
-	static std::shared_ptr<Timer> instance()
-	{
-		static std::shared_ptr<Timer> timer(new Timer());
-		return timer;
-	}
-	float getDeltaTime();
 	void update();
-	void init();
+	float getDeltaTime();
 };
+
+#endif
+

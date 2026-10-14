@@ -1,7 +1,6 @@
 #include "PhysicsComponent.hpp"
 
 #include "GameObject.hpp"
-#include "Transform.hpp"
 #include "Vector3f.hpp" 
 
 PhysicsComponent::PhysicsComponent()
@@ -29,3 +28,6 @@ std::shared_ptr<Vector3f> PhysicsComponent::getVelocity()
 {
     return velocity;
 }
+
+
+

@@ -1,5 +1,4 @@
 #include "Texture.hpp"
-#include "Sprite.hpp"
 
 Texture::Texture()
 {
@@ -8,8 +7,9 @@ Texture::Texture()
     source.w = 0;
     source.h = 0;
 
-    offset = 0.0f;
     texture = nullptr;
+
+    angleOffset = 0.0f;
 }
 
 Texture::~Texture()
@@ -18,9 +18,21 @@ Texture::~Texture()
     texture = nullptr;
 }
 
-SDL_Rect Texture::getSrcRect()
+
+void Texture::setSourceRectangle(SDL_Rect newSourceRectangle)
+{
+    source = newSourceRectangle;
+}
+
+SDL_Rect Texture::getSourceRectangle()
 {
     return source;
+}
+
+
+void Texture::setTexture(SDL_Texture* newTexture)
+{
+    texture = newTexture;
 }
 
 SDL_Texture* Texture::getTexture()
@@ -28,23 +40,13 @@ SDL_Texture* Texture::getTexture()
     return texture;
 }
 
-float Texture::getOffset()
+
+void Texture::setAngleOffset(float newAngle)
 {
-    return offset;
+    angleOffset = newAngle;
 }
 
-
-void Texture::setSrcRect(SDL_Rect s)
+float Texture::getAngleOffset()
 {
-    source = s;
-}
-
-void Texture::setTexture(SDL_Texture* t)
-{
-    texture = t;
-}
-
-void Texture::setOffset(float o)
-{
-    offset = o;
+    return angleOffset;
 }

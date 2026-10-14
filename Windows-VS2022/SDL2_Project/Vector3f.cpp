@@ -1,5 +1,5 @@
 #include "Vector3f.hpp"
-#include <cmath>
+#include <cmath>  
 
 Vector3f::Vector3f()
 {
@@ -13,9 +13,22 @@ Vector3f::Vector3f(float x, float y, float z)
     this->z = z;
 }
 
+Vector3f::Vector3f(Vector3f& other)
+{
+    x = other.x;
+    y = other.y;
+    z = other.z;
+}
+
+Vector3f::Vector3f(std::shared_ptr<Vector3f> other)
+{
+    x = other->x;
+    y = other->y;
+    z = other->z;
+}
+
 Vector3f::~Vector3f()
 {
-
 }
 
 void Vector3f::setX(float newX)
@@ -55,23 +68,37 @@ void Vector3f::scale(float scalingFactor)
     z *= scalingFactor;
 }
 
-void Vector3f::add(Vector3f& other)
+void Vector3f::add(Vector3f &other)
 {
     x += other.getX();
     y += other.getY();
     z += other.getZ();
 }
 
-void Vector3f::subtract(Vector3f& other)
+void Vector3f::add(std::shared_ptr<Vector3f> other)
+{
+    x += other->getX();
+    y += other->getY();
+    z += other->getZ();
+}
+
+void Vector3f::sub(Vector3f &other)
 {
     x -= other.getX();
     y -= other.getY();
     z -= other.getZ();
 }
 
+void Vector3f::sub(std::shared_ptr<Vector3f> other)
+{
+    x -= other->getX();
+    y -= other->getY();
+    z -= other->getZ();
+}
+
 float Vector3f::getLength()
 {
-    return sqrt((x * x) + (y * y) + (z * z));
+   return sqrt((x*x)+(y*y)+(z*z));
 }
 
 void Vector3f::normalise()
@@ -79,3 +106,45 @@ void Vector3f::normalise()
     float scale = 1.0f/this->getLength();
     this->scale(scale);
 }
+
+void Vector3f::rotate2D(float radians)
+{
+    float cosTheta = std::cosf(radians);
+    float sinTheta = std::sinf(radians);
+
+    float xNew = x * cosTheta - y * sinTheta;
+    float yNew = x * sinTheta + y * cosTheta;
+
+    x = xNew;
+    y = yNew;
+    z = 0.0f;
+}
+
+void Vector3f::assign(Vector3f& other)
+{
+    this->x = other.x;
+    this->y = other.y;
+    this->z = other.z;
+}
+
+void Vector3f::assign(std::shared_ptr<Vector3f> other)
+{
+    this->x = other->x;
+    this->y = other->y;
+    this->z = other->z;
+}
+
+void Vector3f::operator=(Vector3f& other)
+{
+    this->x = other.x;
+    this->y = other.y;
+    this->z = other.z;
+}
+
+void Vector3f::operator=(std::shared_ptr<Vector3f> other)
+{
+    this->x = other->x;
+    this->y = other->y;
+    this->z = other->z;
+}
+

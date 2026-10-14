@@ -1,24 +1,30 @@
-#pragma once
-#include "SDL2_Common.h"
+#ifndef TRANSFORM_HPP
+#define TRANSFORM_HPP
+
 #include <memory>
 
 class Vector3f;
 
 class Transform {
 
-private:
-	float angle;
-	std::shared_ptr <Vector3f> position;
-	std::shared_ptr <Vector3f> scale;
-
 public:
-	Transform();
-	~Transform();
+    Transform();
+    ~Transform();
 
-	float getAngle();
-	std::shared_ptr<Vector3f> getPosition();
-	std::shared_ptr<Vector3f> getScale();
-	void setAngle(float a);
-	void setPosition(std::shared_ptr<Vector3f> p);
-	void setScale(std::shared_ptr<Vector3f> s);
+    void setPosition(std::shared_ptr<Vector3f> newPosition);    
+    std::shared_ptr<Vector3f> getPosition();
+
+    void setScale(std::shared_ptr<Vector3f> newScale);
+    std::shared_ptr<Vector3f> getScale();
+
+    void setAngle(float newAngle);
+    float getAngle();
+
+private:
+   std::shared_ptr<Vector3f> position;
+   std::shared_ptr<Vector3f> scale;
+
+   float angle;
 };
+
+#endif

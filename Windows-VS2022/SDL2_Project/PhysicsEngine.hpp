@@ -1,27 +1,28 @@
 #ifndef PHYSICS_ENGINE_HPP
 #define PHYSICS_ENGINE_HPP
 
-#include <memory>
 #include <vector>
+#include <memory>
 
 class PhysicsComponent;
 
 class PhysicsEngine {
 
-private:
-	int maxObjects;
-
-	std::vector<std::shared_ptr<PhysicsComponent>> bodies;
 public:
-	PhysicsEngine();
-	~PhysicsEngine();
+    PhysicsEngine();
+    ~PhysicsEngine();
 
-	void update(float dt);
+    void init(int maxObjects);
 
-	void addPhysicsComponent(std::shared_ptr<PhysicsComponent> component);
-	bool removePhysicsComponent(std::shared_ptr<PhysicsComponent> oldComponent);
 
-	void init(int maxObjects);
+    void addPhysicsComponent(std::shared_ptr<PhysicsComponent> body);
+    bool removePhysicsComponent(std::shared_ptr<PhysicsComponent> body);
+
+    void update(float dt);
+private:
+    int maxObjects;
+    std::vector<std::shared_ptr<PhysicsComponent>> bodies;
+    
 };
 
 #endif

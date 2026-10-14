@@ -1,18 +1,27 @@
 #include "Collider.hpp"
 
-Collider::Collider()
+#include "GameObject.hpp"
+
+Collider::Collider() : Component()
 {
     radius = 0.0f;
     resolution = false;
 }
 
-Collider::Collider(float rad, bool flag, std::shared_ptr<GameObject> gameObject) : Component(gameObject), radius(radius), resolution(resolution)
+// C++ 2022 attribute initialisation
+Collider::Collider(float radius, bool resolution, std::shared_ptr<GameObject> gameObject) : Component(gameObject), radius(radius), resolution(resolution)
 {
 
 }
 
 Collider::~Collider()
 {
+    
+}
+
+void Collider::setRadius(float newRadius)
+{
+    radius = newRadius;
 }
 
 float Collider::getRadius()
@@ -20,17 +29,12 @@ float Collider::getRadius()
     return radius;
 }
 
-void Collider::setRadius(float rad)
+void Collider::setResolution(bool flag)
 {
-    radius = rad;
+    resolution = flag;
 }
 
 bool Collider::needsResolution()
 {
     return resolution;
-}
-
-void Collider::setResolution(bool flag)
-{
-    resolution = flag;
 }

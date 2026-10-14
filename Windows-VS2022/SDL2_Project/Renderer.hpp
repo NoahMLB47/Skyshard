@@ -1,21 +1,21 @@
-#pragma once
+#ifndef RENDERER_HPP
+#define RENDERER_HPP
 
 #include "SDL2_Common.h"
 
 class Renderer {
 
 public:
-	Renderer();
-	~Renderer();
+    Renderer();
+    ~Renderer();
 
-	void setRenderer(SDL_Renderer* r);
-	SDL_Renderer* getRenderer();
-
-	SDL_Renderer* setup(SDL_Window* window);
-
-	void clear();
-	void present();
-
+    bool init(SDL_Window* window);
+    SDL_Renderer* getRenderer();
+    void clear();
+    void present();
+    
 private:
-	SDL_Renderer* renderer;
+    SDL_Renderer* renderer;
 };
+
+#endif

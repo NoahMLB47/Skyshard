@@ -1,84 +1,100 @@
 #include "PhysicsEngine.hpp"
-
-#include "GameObject.hpp"
+ 
 #include "PhysicsComponent.hpp"
+#include "GameObject.hpp"
 #include "Transform.hpp"
-#include "Vector3f.hpp"
+#include "Vector3f.hpp" 
 
 PhysicsEngine::PhysicsEngine()
 {
-	maxObjects = 0;
+    maxObjects = 0;
 }
 
 PhysicsEngine::~PhysicsEngine()
 {
-	std::vector<std::shared_ptr<PhysicsComponent>>::iterator itt;
-	for (itt = bodies.begin(); itt != bodies.end(); itt++)
-		(*itt).reset(); // call reset on shared pointer
-
-	bodies.clear();
+    std::vector<std::shared_ptr<PhysicsComponent>>::iterator itt;
+    for(itt = bodies.begin(); itt != bodies.end(); ++itt)
+    {
+        (*itt).reset(); // call reset on the shared pointer!
+    }
+    
+    bodies.clear();
 }
-
-void PhysicsEngine::addPhysicsComponent(std::shared_ptr<PhysicsComponent> newComponent)
-{
-	bodies.push_back(newComponent);
-}
-
 
 void PhysicsEngine::init(int maxObjects)
 {
-	bodies.resize(maxObjects);
+    bodies.resize(maxObjects);
 }
 
-bool PhysicsEngine::removePhysicsComponent(std::shared_ptr<PhysicsComponent> oldComponent)
+void PhysicsEngine::addPhysicsComponent(std::shared_ptr<PhysicsComponent> body)
 {
-	bool deleted = false;
-	std::vector<std::shared_ptr<PhysicsComponent>>::iterator itt;
-	for (itt = bodies.begin(); itt != bodies.end(); itt++)
-	{
-		std::shared_ptr<PhysicsComponent> temp = *itt;
-		if (temp == oldComponent)
-		{
-			bodies.erase(itt);
-			deleted = true;
-			// itt - now invalid as we have altered the vector
-			break;
-		}
-	}
+    bool added = false;
+    std::vector<std::shared_ptr<PhysicsComponent>>::iterator itt;
+    for(itt = bodies.begin(); itt != bodies.end(); ++itt)
+    {
+        if(*itt == nullptr)
+        {
+            *itt = body;
+            added = true;
+            break;
+        }
+    }
 
-	return deleted;
+    //if(added == false)
+        //std::cout << "Ran out of pre-allocated physics components" << std::endl;
 }
 
-void PhysicsEngine::update(float dt)
+bool PhysicsEngine::removePhysicsComponent(std::shared_ptr<PhysicsComponent> body)
 {
-	std::shared_ptr<PhysicsComponent> body;
-	std::shared_ptr<GameObject> object;
-	std::shared_ptr<Transform> transform;
-	std::shared_ptr<Vector3f> position;
-	std::shared_ptr<Vector3f> velocity;
+    bool deleted = false;
+    std::vector<std::shared_ptr<PhysicsComponent>>::iterator itt;
+    for(itt = bodies.begin(); itt != bodies.end(); ++itt)
+    {
+        std::shared_ptr<PhysicsComponent> temp = *itt;
+        if(temp == body)
+        {
+            bodies.erase(itt);
+            // itt - now invalid as we've altered the vector!
+            deleted = true;
+            break;
 
-	std::vector<std::shared_ptr<PhysicsComponent>>::iterator itt;
-	for (itt = bodies.begin(); itt != bodies.end(); itt++)
-	{
-		body = *itt;
+            /* To erase all matching*/
+            //itt = sprites.erase(itt);
+        }
+    }
 
-		if (body == nullptr)
-			continue;
+    return deleted;
+}
 
-		object = body->getGameObject();
+void PhysicsEngine::update(float deltaTime)
+{
+    std::shared_ptr<PhysicsComponent> body;
+    std::shared_ptr<GameObject> gameObject;
+    std::shared_ptr<Transform> transform;
+    std::shared_ptr<Vector3f> position;
+    std::shared_ptr<Vector3f> velocity;
 
-		if (object->isEnabled() == false)
-			continue;
+    std::vector<std::shared_ptr<PhysicsComponent>>::iterator itt;
 
-		transform = object->getTransform();
-		position = transform->getPosition();
-		velocity = body->getVelocity();
+    for(itt = bodies.begin(); itt != bodies.end(); ++itt)
+    {
+        body = *itt;
 
-		// copy velocity and scale
-		Vector3f movement(*velocity);
-		movement.scale(dt);
+        if(body == nullptr)
+            continue;
 
-		// add to position
-		position->add(movement);
-	}
+        gameObject = body->getGameObject();
+
+        if(gameObject->isEnabled() == false)
+            continue;
+
+        transform = gameObject->getTransform();
+        position = transform->getPosition();
+        velocity = body->getVelocity();
+
+        Vector3f movement(velocity);
+        movement.scale(deltaTime);
+
+        position->add(movement);
+    }
 }

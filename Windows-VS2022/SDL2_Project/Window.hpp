@@ -1,22 +1,22 @@
-#pragma once
+#ifndef WINDOW_HPP
+#define WINDOW_HPP
 
 #include "SDL2_Common.h"
 
 class Window {
 
 public:
-	Window();
-	~Window();
+    Window();
+    ~Window();
 
-	void setWindow(SDL_Window* w);
-	SDL_Window* getWindow();
+    bool init();
+    SDL_Window* getWindow();
 
-	SDL_Window* createSDLWindow();
+    static const int WINDOW_WIDTH = 1920;
+    static const int WINDOW_HEIGHT = 1080;
 
 private:
-	SDL_Window* window;
-
-public:
-	static const int WINDOW_WIDTH = 800;
-	static const int WINDOW_HEIGHT = 600;
+    SDL_Window* window;
 };
+
+#endif

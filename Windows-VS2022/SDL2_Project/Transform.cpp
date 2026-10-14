@@ -1,4 +1,5 @@
 #include "Transform.hpp"
+#include "Vector3f.hpp"
 
 Transform::Transform()
 {
@@ -9,11 +10,16 @@ Transform::Transform()
 
 Transform::~Transform()
 {
+    position.reset();
+    position = nullptr;
+
+    scale.reset();
+    scale = nullptr;
 }
 
-float Transform::getAngle()
+void Transform::setPosition(std::shared_ptr<Vector3f> newPosition)
 {
-    return 0.0f;
+    position = newPosition;
 }
 
 std::shared_ptr<Vector3f> Transform::getPosition()
@@ -21,22 +27,22 @@ std::shared_ptr<Vector3f> Transform::getPosition()
     return position;
 }
 
+void Transform::setScale(std::shared_ptr<Vector3f> newScale)
+{
+    scale = newScale;
+}
+
 std::shared_ptr<Vector3f> Transform::getScale()
 {
     return scale;
 }
 
-void Transform::setAngle(float a)
+void Transform::setAngle(float newAngle)
 {
-    angle = a;
+    angle = newAngle;
 }
 
-void Transform::setPosition(std::shared_ptr<Vector3f> p)
+float Transform::getAngle()
 {
-    position = p;
-}
-
-void Transform::setScale(std::shared_ptr<Vector3f> s)
-{
-    scale = s;
+    return angle;
 }

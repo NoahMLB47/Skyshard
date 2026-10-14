@@ -1,55 +1,79 @@
 #include "Game.hpp"
-#include "Window.hpp"
+#include "SDL2_Common.h"
+
+#include "Window.hpp" 
 #include "Renderer.hpp"
+ 
 #include "Timer.hpp"
 #include "InputManager.hpp"
-#include "RenderEngine.hpp"
-#include "Background.hpp"
-#include "SDL2_Common.h"
-#include "Sprite.hpp"
-#include "Transform.hpp"
-#include "Texture.hpp"
-#include "Vector3f.hpp"
-#include "Player.hpp"
-#include "PhysicsComponent.hpp"
-#include "PhysicsEngine.hpp"
-#include "GameObjectFactory.hpp"
-#include "CollisionEngine.hpp"
-#include "NPC.hpp"
-#include <iostream>
 
+#include "RenderEngine.hpp"
+#include "PhysicsEngine.hpp"
+#include "CollisionEngine.hpp"
+
+#include "Sprite.hpp"
+#include "PhysicsComponent.hpp"
+#include "Vector3f.hpp"
+
+#include "GameObject.hpp"
+#include "GameObjectFactory.hpp"
+#include "Background.hpp"
+#include "Player.hpp"
+#include "NPCManager.hpp"
+#include "TextureManager.hpp"
+#include "UI.hpp"
 
 Game::Game()
 {
-    quit = false;
-    gameWindow = nullptr;
-    gameRenderer = nullptr;
-    gameTimer = nullptr;
-    gameRenderEngine = nullptr;
-    gamePhysicsEngine = nullptr;
+    window = nullptr;
+    renderer = nullptr;
+    physicsEngine = nullptr;
+    renderEngine = nullptr;
+    inputManager = nullptr;
+    collisionEngine = nullptr;
+    timer = nullptr;
+    npcManager = nullptr;
+    ui = nullptr;
 }
 
 Game::~Game()
 {
-    gameWindow.reset();
-    gameWindow = nullptr;
+    window.reset();
+    window = nullptr;
 
-    gameRenderer.reset();
-    gameRenderer = nullptr;
+    renderer.reset();
+    renderer = nullptr;
 
-    gameRenderEngine.reset();
-    gameRenderEngine = nullptr;
-    
-    gamePhysicsEngine.reset();
-    gamePhysicsEngine = nullptr;
-    
+    renderEngine.reset();
+    renderEngine = nullptr;
+
+    physicsEngine.reset();
+    physicsEngine = nullptr;
+
     std::vector<std::shared_ptr<GameObject>>::iterator itt;
-    for (itt = gameObjects.begin(); itt != gameObjects.end(); itt++)
-        (*itt).reset(); // call reset on shared pointer
+    for(itt = gameObjects.begin(); itt != gameObjects.end(); ++itt)
+    {
+        (*itt).reset(); // call reset on the shared pointer!
+    }
 
-    gameObjects.clear();
+    collisionEngine.reset();
+    collisionEngine = nullptr;
+    
+    timer.reset();
+    timer = nullptr;
 
+    npcManager.reset();
+    npcManager = nullptr;
+
+    textureManager.reset();
+    textureManager = nullptr;
+
+    ui.reset();
+    ui = nullptr;
+
+    //Shutdown SDL - clear up resources etc. 
     SDL_Quit();
+    TTF_Quit();
 }
 
 void Game::init()
@@ -58,57 +82,46 @@ void Game::init()
     // going to be initialised. 
     // Lets go for everything for now!
     SDL_Init(SDL_INIT_EVERYTHING);
+    TTF_Init();
 
-    gameWindow = std::shared_ptr<Window>(new Window());
-    gameWindow->createSDLWindow();
+    window = std::shared_ptr<Window>(new Window());
+    window->init();
 
-    gameRenderer = std::shared_ptr<Renderer>(new Renderer());
-    gameRenderer->setup(gameWindow->getWindow());
-    
+    renderer = std::shared_ptr<Renderer>(new Renderer());
+    renderer->init(window->getWindow());
+
     gameObjects.resize(MAX_GAME_OBJECTS);
 
-    gameRenderEngine = std::shared_ptr<RenderEngine>(new RenderEngine());
-    gameRenderEngine->init(MAX_GAME_OBJECTS, gameRenderer);
+    renderEngine = std::shared_ptr<RenderEngine>(new RenderEngine());
+    renderEngine->init(MAX_GAME_OBJECTS, renderer);
 
-    gameTimer = Timer::instance();
-    gameTimer->init();
+    timer = Timer::instance();
+    inputManager = InputManager::instance();
 
-	inputManager = InputManager::instance();
-    inputManager->init();
+    GameObjectFactory::instance();
 
-    gamePhysicsEngine = std::shared_ptr<PhysicsEngine>(new PhysicsEngine());
-    gamePhysicsEngine->init(MAX_GAME_OBJECTS);
+    physicsEngine = std::shared_ptr<PhysicsEngine>(new PhysicsEngine());
+    physicsEngine->init(MAX_GAME_OBJECTS);
 
-    gameCollisionEngine = std::shared_ptr<CollisionEngine>(new CollisionEngine());
-    gameCollisionEngine->init(MAX_GAME_OBJECTS);
+    collisionEngine = std::shared_ptr<CollisionEngine>(new CollisionEngine());
+    collisionEngine->init(MAX_GAME_OBJECTS);
 
-    gameObjectFactory = GameObjectFactory::instance();
+    std::shared_ptr<Background> background = GameObjectFactory::instance()->createBackground(std::shared_ptr<Vector3f>(new Vector3f(0.0f, 0.0f, 0.0f)));
+    background->init();
 
-    std::shared_ptr<Background> background = gameObjectFactory->createBackground();
-    registerGameObjects(background);
+    std::shared_ptr<Background> background2 = GameObjectFactory::instance()->createBackground(std::shared_ptr<Vector3f>(new Vector3f(Window::WINDOW_WIDTH, 0.0f, 0.0f)));
+    background2->init();
+    
+    std::shared_ptr<Player> player = GameObjectFactory::instance()->createPlayer();
 
-    std::shared_ptr<Player> player = gameObjectFactory->createPlayer();
-    registerGameObjects(player);
+    //std::shared_ptr<NPC> npc = GameObjectFactory::instance()->createNPC();
+    npcManager = std::shared_ptr<NPCManager>(new NPCManager());
+    npcManager->init(MAX_NPCS);
 
-    std::shared_ptr<NPC> npc = gameObjectFactory->createNPC();
-    registerGameObjects(npc);
-}
+    textureManager = TextureManager::instance();
 
-
-void Game::runGameLoop()
-{
-    gameTimer->update();
-    inputManager->update();
-    while(!quit)
-    {
-        gameTimer->update();
-
-        runGameLoopOnce();
-    }
-}
-
-void Game::cacheTextures()
-{
+    ui = UI::instance();
+    
 }
 
 void Game::setupGameState()
@@ -116,92 +129,135 @@ void Game::setupGameState()
 
 }
 
+void Game::runGameLoop()
+{
+    // for last_time. 
+    timer->update();
+    inputManager->update();
+
+    // Game loop
+    while(!quit) // while quit is not true
+    { 
+        // update systems
+        timer->update();
+
+       
+        runGameLoopOnce();
+    }
+}
+
 void Game::runGameLoopOnce()
 {
-    float deltaTime = gameTimer->getDeltaTime();
+    float deltaTime = timer->getDeltaTime();
+
+    // process inputs
     inputManager->update();
     quit = inputManager->isWindowClosedEvent();
 
+    // update game state
     update(deltaTime);
 
+    // draw
     draw();
-    
-    SDL_Delay(0);
-}
 
-void Game::update(float deltaTime)
-{
-    gamePhysicsEngine->update(deltaTime);
-
-    gameCollisionEngine->check();
-    
-    // update game objects?
-    std::shared_ptr<GameObject> object;
-
-    std::vector<std::shared_ptr<GameObject>>::iterator itt;
-    for (itt = gameObjects.begin(); itt != gameObjects.end(); itt++)
-    {
-        object = *itt;
-        if(object != nullptr)
-           (*itt)->update(); // call reset on shared pointer
-    }
 }
 
 void Game::draw()
 {
-    // clear screen
-    gameRenderer->clear();
+    // Draw ...
 
-    // draw scene
-    gameRenderEngine->render();
+    // 1. Clear the screen
+    renderer->clear();
 
-    // present current frame to screen
-    gameRenderer->present();
+    // 2. Draw the scene
+    renderEngine->render();
+
+    // 3. Present the current frame to the screen
+    renderer->present();
 }
+
+void Game::update(float deltaTime)
+{
+   physicsEngine->update(deltaTime);
+
+   collisionEngine->check();
+
+   std::shared_ptr<GameObject> gameObject;
+
+    std::vector<std::shared_ptr<GameObject>>::iterator itt;
+    for(itt = gameObjects.begin(); itt != gameObjects.end(); ++itt)
+    {
+        gameObject = *itt;
+        
+        if(gameObject == nullptr)
+            continue;
+        else
+            gameObject->update();
+    }
+
+}
+
 
 std::shared_ptr<Renderer> Game::getRenderer()
 {
-    return gameRenderer;
+    return renderer;
 }
 
-void Game::registerGameObjects(std::shared_ptr<GameObject> newGO)
+void Game::registerGameObject(std::shared_ptr<GameObject> newGO)
 {
-    gameObjects.push_back(newGO);
+    bool added = false;
+    std::vector<std::shared_ptr<GameObject>>::iterator itt;
+    for(itt = gameObjects.begin(); itt != gameObjects.end(); ++itt)
+    {
+        if(*itt == nullptr)
+        {
+            *itt = newGO;
+            added = true;
+            break;
+        }
+    }
+
+    if(added == false) 
+    {
+       // std::cout << "Ran out of pre-allocated game objects" << std::endl;
+        // No point in registering the rest of the components it would
+        // just crash
+        return; // need better error handling!
+    }
 
     std::shared_ptr<Sprite> sprite = newGO->getSprite();
 
-    if (sprite != nullptr)
-        gameRenderEngine->addSprite(sprite);
+    if(sprite != nullptr)
+        renderEngine->addSprite(sprite);
 
-    std::shared_ptr<PhysicsComponent> physicsComponent = newGO->getPhysicsComponent();
+    std::shared_ptr<PhysicsComponent> phys = newGO->getPhysicsComponent();
 
-    if (physicsComponent != nullptr)
-        gamePhysicsEngine->addPhysicsComponent(physicsComponent);
+    if(phys != nullptr)
+        physicsEngine->addPhysicsComponent(phys);
 
-    std::shared_ptr<Collider> col = newGO->getCollider();
+    std::shared_ptr<Collider> col = newGO->getCollisionComponent();
 
-    if (col != nullptr)
-        gameCollisionEngine->addCollider(col);
-
+    if(col != nullptr) 
+        collisionEngine->addCollider(col);
 }
 
-// returns first thing with that name
+// Finds first thing with that name!
 std::shared_ptr<GameObject> Game::findGameObjectByName(std::string name)
 {
-    std::shared_ptr<GameObject> object;
+    std::shared_ptr<GameObject> gameObject;
     std::shared_ptr<GameObject> found = nullptr;
 
     std::vector<std::shared_ptr<GameObject>>::iterator itt;
-    for (itt = gameObjects.begin(); itt != gameObjects.end(); itt++)
+    for(itt = gameObjects.begin(); itt != gameObjects.end(); ++itt)
     {
-        object = *itt;
-        
-        if (object == nullptr)
-            continue;
+        gameObject = *itt;
 
-        if (object->getName() == name)
+        if(gameObject == nullptr)
+            continue;
+        
+        if(gameObject->getName() == name) 
         {
-            found = object;
+            found = gameObject;
             break;
         }
     }

@@ -1,6 +1,5 @@
 #include "Sprite.hpp"
 
-#include "GameObject.hpp"
 #include "Texture.hpp"
 
 Sprite::Sprite() : Component(gameObject)
@@ -23,3 +22,4 @@ std::shared_ptr<Texture> Sprite::getTexture()
 {
     return texture;
 }
+

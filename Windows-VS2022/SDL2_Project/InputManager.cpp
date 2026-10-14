@@ -1,68 +1,110 @@
 #include "InputManager.hpp"
+#include "Vector3f.hpp"
+
+std::shared_ptr<InputManager> InputManager::inputManager = nullptr;
 
 InputManager::InputManager()
 {
-	keyStates = SDL_GetKeyboardState(NULL);
+    keyStates = nullptr;
+    quit = false;
+    fire = false;
+    mousePosition = nullptr;
+}
+
+std::shared_ptr<InputManager> InputManager::instance()
+{
+    if(inputManager == nullptr)
+    {
+        inputManager.reset(new InputManager());
+        inputManager->init();
+    }
+    return inputManager;
+}
+
+void InputManager::init()
+{
+    // Track Keystates array
+    keyStates = SDL_GetKeyboardState(NULL);
+
+    mousePosition.reset(new Vector3f(0.0f,0.0f,0.0f));
 }
 
 InputManager::~InputManager()
 {
+    keyStates = nullptr;
+
+    mousePosition.reset();
+    mousePosition = nullptr;
 }
 
+bool InputManager::isWindowClosedEvent()
+{
+    return quit;
+}
 
 float InputManager::getHorizontalInput()
 {
-    // Process key states
-    if (keyStates[SDL_SCANCODE_LEFT])
-        horizontalInput = -1.0f;
+    if (keyStates[SDL_SCANCODE_RIGHT])
+        return 1.0f;
     else
     {
-        if (keyStates[SDL_SCANCODE_RIGHT])
-            horizontalInput = 1.0f;
+        if (keyStates[SDL_SCANCODE_LEFT])
+            return -1.0f;
         else
-            horizontalInput = 0.0f;
+            return 0.0f;
     }
-
-	return horizontalInput;
 }
 
 float InputManager::getVerticalInput()
 {
-    // Process key states
     if (keyStates[SDL_SCANCODE_UP])
-        verticalInput = -1.0f;
+        return -1.0f;
     else
     {
         if (keyStates[SDL_SCANCODE_DOWN])
-            verticalInput = 1.0f;
+            return 1.0f;
         else
-            verticalInput = 0.0f;
+            return 0.0f;
     }
-
-	return verticalInput;
 }
 
-bool InputManager::isWindowClosedEvent()
+void InputManager::update()
 {
     if (SDL_PollEvent(&event))  // test for events
     {
         switch (event.type)
         {
-        case SDL_QUIT:
-            quit = true;
+            case SDL_QUIT:
+                quit = true;
             break;
         }
     }
-    
-    return quit;
+
+    int mouseX;
+    int mouseY;
+
+    Uint32 button = SDL_GetMouseState(&mouseX, &mouseY);
+
+    this->mousePosition->setX(mouseX);
+    this->mousePosition->setY(mouseY);
+
+    fire = false;
+
+    if (button) 
+    {
+        if(button == SDL_BUTTON(SDL_BUTTON_LEFT))
+        {
+            fire = true;
+        }   
+    }
 }
 
-void InputManager::update()
+std::shared_ptr<Vector3f> InputManager::getMousePosition()
 {
-
+    return this->mousePosition;
 }
 
-void InputManager::init()
+bool InputManager::getFire()
 {
+    return fire;
 }
-

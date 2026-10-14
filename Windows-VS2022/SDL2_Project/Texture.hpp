@@ -1,22 +1,27 @@
-#pragma once
+#ifndef TEXTURE_HPP
+#define TEXTURE_HPP
+
 #include "SDL2_Common.h"
 
 class Texture {
 
-private:
-	SDL_Rect source;
-	float offset;
-	SDL_Texture* texture;
-
 public:
-	Texture();
-	~Texture();
-	
-	SDL_Rect getSrcRect();
-	SDL_Texture* getTexture();
-	float getOffset();
-	
-	void setSrcRect(SDL_Rect s);
-	void setTexture(SDL_Texture* t);
-	void setOffset(float o);
+    Texture();
+    ~Texture();
+
+    void setSourceRectangle(SDL_Rect newSourceRectangle);
+    SDL_Rect getSourceRectangle();
+
+    void setTexture(SDL_Texture* newTexture);
+    SDL_Texture* getTexture();
+
+    void setAngleOffset(float newAngle);
+    float getAngleOffset();
+
+private:
+    SDL_Rect source;
+    SDL_Texture* texture;
+    float angleOffset;
 };
+
+#endif

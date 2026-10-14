@@ -5,15 +5,15 @@
 
 class Background : public GameObject {
 
-private:
-
-
 public:
-	Background();
-	virtual ~Background();
+    Background();
+    ~Background();
 
-	void update();
-	void handleCollision(std::shared_ptr<Collider> other);
+    void handleCollision(std::shared_ptr<Collider> other);
+    void update();
+    void init();
+private:
+    float speed;
 };
 
 #endif

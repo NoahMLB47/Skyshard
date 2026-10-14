@@ -1,29 +1,41 @@
-#pragma once
-#include "SDL2_Common.h"
+#ifndef INPUT_MANAGER_HPP
+#define INPUT_MANAGER_HPP
+
 #include <memory>
 
-class InputManager {
+#include "SDL2_Common.h"
 
-private: 
-	const Uint8* keyStates;
-	float horizontalInput;
-	float verticalInput;
+class Vector3f;
+
+class InputManager
+{
+private:
+	// Singleton - private constructor!
+	InputManager();
+	void init();
+	
 	SDL_Event event;
 	bool quit;
+	const Uint8* keyStates;
+	std::shared_ptr<Vector3f> mousePosition;
+	bool fire;
 
-	InputManager();
+	static std::shared_ptr<InputManager> inputManager;
+
 public:
-	~InputManager();
+	
+	static std::shared_ptr<InputManager> instance();
 
-	static std::shared_ptr<InputManager> instance()
-	{
-		static std::shared_ptr<InputManager> inputManager(new InputManager());
-		inputManager->init();
-		return inputManager;
-	}
+	~InputManager();
+	
+	void update();
+	bool isWindowClosedEvent();
 	float getHorizontalInput();
 	float getVerticalInput();
-	bool isWindowClosedEvent();
-	void update();
-	void init();
+	
+	std::shared_ptr<Vector3f> getMousePosition();
+	bool getFire();
+
 };
+#endif
+

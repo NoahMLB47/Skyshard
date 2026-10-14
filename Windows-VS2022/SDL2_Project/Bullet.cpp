@@ -1,87 +1,96 @@
 #include "Bullet.hpp"
-#include "Transform.hpp"
 #include "PhysicsComponent.hpp"
+#include "Transform.hpp"
 #include "Vector3f.hpp"
 #include "Collider.hpp"
 #include "Timer.hpp"
 
-const float Bullet::MAX_TTL = 10.0f;
+const float Bullet::MAX_TTL = 5.0f;
 
-Bullet::Bullet()
+Bullet::Bullet() : GameObject()
 {
-	name = "Bullet";
-	damage = 10;
-	speed = 100.0f;
-	ttl = MAX_TTL;
-	timer = Timer::instance();
+    name = "Bullet";
+    damage = 10;
+    speed = 500;
+    ttl = MAX_TTL;
+
+    //cache timer
+    timer = Timer::instance();
 }
 
 Bullet::~Bullet()
 {
+    timer.reset();
+    timer = nullptr;
 }
 
 void Bullet::update()
 {
-	float deltaTime = timer->getDeltaTime();
+    float delta = timer->getDeltaTime();
 
-	ttl -= deltaTime;
+    ttl -= delta;
 
-	if (ttl < 0)
-	{
-		despawn();
-	}
+    if(ttl < 0.0f) 
+    {
+        despawn();
+    }
+
+
 }
 
-void Bullet::setDamage(int newDamage)
+void Bullet::setDamage(int damage)
 {
-	damage = newDamage;
+    this->damage = damage;
 }
 
 int Bullet::getDamage()
 {
-	return damage;
+    return damage;
 }
 
-void Bullet::setSpeed(float s)
+void Bullet::setSpeed(float speed)
 {
-	speed = s;
+    this->speed = speed;
 }
 
 float Bullet::getSpeed()
 {
-	return speed;
+    return speed;
 }
 
-void Bullet::spawn(std::shared_ptr<Vector3f> position, std::shared_ptr<Vector3f> direction, float orientation)
+
+void Bullet::spawn(Vector3f& position, Vector3f& direction, float orientation)
 {
-	// TODO: bullet might be in player
-	this->getTransform()->setPosition(position);
+    // TODO: might need to fix this - bullet will be inside of player?1
+    this->getTransform()->getPosition()->assign(position);
+    this->getTransform()->setAngle(orientation);
 
-	std::shared_ptr<Vector3f> velocity = this->getPhysicsComponent()->getVelocity();
+    std::shared_ptr<Vector3f> velocity = this->getPhysicsComponent()->getVelocity();
 
-	// set velocity to direction of player
-	velocity->setX(direction->getX());
-	velocity->setY(direction->getY());
-	velocity->setZ(direction->getZ());
+    // set velocity to direction of player
+    velocity->assign(direction);
 
-	// make unit length
-	velocity->normalise();
+    // make unit length
+    velocity->normalise();
 
-	// scale by speed for velocity vector
-	velocity->scale(speed);
+    // scale by speed for velocity vector
+    velocity->scale(speed);
 
-	this->getPhysicsComponent()->setVelocity(velocity);
+    //this->getPhysicsComponent()->setVelocity(velocity);
 
-	ttl = MAX_TTL;
+    ttl = MAX_TTL;
+
+    this->enable();
+
 }
 
 void Bullet::despawn()
 {
-	this->disable();
-	ttl = 0.0f;
+    this->disable();
+    ttl = -10.0f;
 }
 
 void Bullet::handleCollision(std::shared_ptr<Collider> other)
 {
-	despawn();
+    despawn();
 }

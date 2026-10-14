@@ -1,173 +1,227 @@
 #include "CollisionEngine.hpp"
-#include "Vector3f.hpp"
+ 
 #include "Collider.hpp"
 #include "GameObject.hpp"
 #include "Transform.hpp"
+#include "Vector3f.hpp" 
+#include "Sprite.hpp"
+#include "Texture.hpp"
 
-#include <memory>
-#include <cmath>
 #include <iostream>
 
 CollisionEngine::CollisionEngine()
 {
-	maxObjects = 0;
+    maxObjects = 0;
 }
 
 CollisionEngine::~CollisionEngine()
 {
-	std::vector<std::shared_ptr<Collider>>::iterator itt;
-	for (itt = colliders.begin(); itt != colliders.end(); itt++)
-		(*itt).reset(); // call reset on shared pointer
-
-	colliders.clear();
+    std::vector<std::shared_ptr<Collider>>::iterator itt;
+    for(itt = colliders.begin(); itt != colliders.end(); ++itt)
+    {
+        (*itt).reset(); // call reset on the shared pointer!
+    }
+    
+    colliders.clear();
 }
 
 void CollisionEngine::init(int maxObjects)
 {
-	colliders.resize(maxObjects);
+    colliders.resize(maxObjects);
 }
 
-void CollisionEngine::addCollider(std::shared_ptr<Collider> coll)
+void CollisionEngine::addCollider(std::shared_ptr<Collider> body)
 {
-	colliders.push_back(coll);
+    bool added = false;
+    std::vector<std::shared_ptr<Collider>>::iterator itt;
+    for(itt = colliders.begin(); itt != colliders.end(); ++itt)
+    {
+        if(*itt == nullptr)
+        {
+            *itt = body;
+            added = true;
+            break;
+        }
+    }
+
+   // if(added == false)
+        //std::cout << "Ran out of pre-allocated collider components" << std::endl;
 }
 
-bool CollisionEngine::removeCollider(std::shared_ptr<Collider> coll)
+bool CollisionEngine::removeCollider(std::shared_ptr<Collider> body)
 {
-	bool deleted = false;
-	std::vector<std::shared_ptr<Collider>>::iterator itt;
-	for (itt = colliders.begin(); itt != colliders.end(); itt++)
-	{
-		std::shared_ptr<Collider> temp = *itt;
-		if (temp == coll)
-		{
-			colliders.erase(itt);
-			deleted = true;
-			// itt - now invalid as we have altered the vector
-			break;
-		}
-	}
+    bool deleted = false;
+    std::vector<std::shared_ptr<Collider>>::iterator itt;
+    for(itt = colliders.begin(); itt != colliders.end(); ++itt)
+    {
+        if(*itt == body)
+        {
+            colliders.erase(itt);
+            // itt - now invalid as we've altered the vector!
+            deleted = true;
+            break;
 
-	return deleted;
+            /* To erase all matching*/
+            //itt = sprites.erase(itt);
+        }
+    }
+
+    return deleted;
 }
 
 void CollisionEngine::check()
 {
-	std::shared_ptr<Collider> colliderOne;
+    std::shared_ptr<Collider> colliderOne;
 
-	std::vector<std::shared_ptr<Collider>>::iterator itt;
-	for (itt = colliders.begin(); itt != colliders.end(); itt++)
-	{
-		colliderOne = *itt;
+    std::vector<std::shared_ptr<Collider>>::iterator itt;
 
-		if (colliderOne == nullptr)
-			continue;
+    for(itt = colliders.begin(); itt != colliders.end(); ++itt)
+    {
+        colliderOne = *itt;
 
-		if (colliderOne->getGameObject()->isEnabled() == false)
-			continue;
+        if(colliderOne == nullptr)
+            continue;
 
-		std::shared_ptr<Collider> colliderTwo;
+        if(colliderOne->getGameObject()->isEnabled() == false)
+            continue;
 
+        std::shared_ptr<Collider> colliderTwo;
 
-		std::vector<std::shared_ptr<Collider>>::iterator itt2;
-		for (itt2 = colliders.begin(); itt2 != colliders.end(); itt2++)
-		{
-			colliderTwo = *itt2;
+        std::vector<std::shared_ptr<Collider>>::iterator itt2;
 
-			if (colliderTwo == nullptr)
-				continue;
+        for(itt2 = std::next(itt); itt2 != colliders.end(); ++itt2)
+        {
+            colliderTwo = *itt2;
 
-			if (colliderTwo->getGameObject()->isEnabled() == false)
-				continue;
-			
-			if (colliderOne == colliderTwo)
-				continue;
+            if(colliderTwo == nullptr)
+                continue;
 
-			// Collision check
-			if (collide(colliderOne, colliderTwo) == true)
-			{
-				// Handle collision
-				handleCollision(colliderOne, colliderTwo);
-			}
+            if(colliderTwo->getGameObject()->isEnabled() == false)
+                continue;
 
-		}
-	}
+            // Check we're not comparing to ourself!
+
+            if(colliderOne == colliderTwo)
+                continue;
+
+            if ((colliderOne->getGameObject()->getName() == "player" && colliderTwo->getGameObject()->getName() == "playerBullet") || (colliderTwo->getGameObject()->getName() == "player" && colliderOne->getGameObject()->getName() == "playerBullet"))
+                continue;
+            
+            if (colliderOne->getGameObject()->getName() == "playerBullet" && colliderTwo->getGameObject()->getName() == "playerBullet")
+                continue;
+
+            if (colliderOne->getGameObject()->getName() == "playerBullet" && colliderTwo->getGameObject()->getName() == "npcBullet")
+                continue;
+
+            if (colliderOne->getGameObject()->getName() == "npcBullet" && colliderTwo->getGameObject()->getName() == "playerBullet")
+                continue;
+
+            if (colliderOne->getGameObject()->getName() == "npcBullet" && colliderTwo->getGameObject()->getName() == "npcBullet")
+                continue;
+
+            if (colliderOne->getGameObject()->getName() == "npcBullet" && colliderTwo->getGameObject()->getName() == "smallShip")
+                continue;
+
+            if (colliderOne->getGameObject()->getName() == "smallShip" && colliderTwo->getGameObject()->getName() == "npcBullet")
+                continue;
+
+            if (colliderOne->getGameObject()->getName() == "boss" && colliderTwo->getGameObject()->getName() == "npcBullet")
+                continue;
+
+            if (colliderOne->getGameObject()->getName() == "npcBullet" && colliderTwo->getGameObject()->getName() == "boss")
+                continue;
+
+            //if (colliderOne->getGameObject()->getName() == "npc" && colliderTwo->getGameObject()->getName() == "npc")
+            //    continue;
+
+            // Collision check
+            if(collide(colliderOne, colliderTwo) == true)
+            {
+
+                // handle collisions 
+                handleCollision(colliderOne, colliderTwo);
+            }
+        } 
+    }
 }
 
 bool CollisionEngine::collide(std::shared_ptr<Collider> a, std::shared_ptr<Collider> b)
 {
-	std::shared_ptr<Vector3f> posA;
-	std::shared_ptr<Vector3f> posB;
-	std::shared_ptr<Vector3f> s;
+    Vector3f posA;
+    Vector3f posB;
+    Vector3f s;
 
-	float radiusA;
-	float radiusB;
+    float radA;
+    float radB;
 
-	posA = a->getGameObject()->getTransform()->getPosition();
-	posB = b->getGameObject()->getTransform()->getPosition();
+    posA.assign(a->getGameObject()->getTransform()->getPosition());
+    posB.assign(b->getGameObject()->getTransform()->getPosition());
+    
+    radA = a->getRadius();
+    radB = b->getRadius();
 
-	radiusA = a->getRadius();
-	radiusB = b->getRadius();
+    s.assign(posA);
+    s.sub(posB);
 
-	s.reset(new Vector3f(posA->getX(), posA->getY(), posA->getZ()));
-	s->subtract(*posB.get());
+    float sLength = s.getLength();
 
-	float sLength = s->getLength();
+    if(sLength < (radA + radB))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 
-	if (sLength < (radiusA + radiusB))
-		return true;
-	else
-		return false;
 }
 
 void CollisionEngine::handleCollision(std::shared_ptr<Collider> a, std::shared_ptr<Collider> b)
 {
-	bool resolve = a->needsResolution() && b->needsResolution();
+    bool resolve = a->needsResolution() && b->needsResolution();
 
-	if (resolve == true)
-	{
-		resolveCollision(a, b);
-	}
+    if(resolve == true)
+    {
+        resolveCollision(a,b);
+    }
 
-	// inform objects
+    // inform objects
 
-	a->getGameObject()->handleCollision(b);
-	b->getGameObject()->handleCollision(a);
+    a->getGameObject()->handleCollision(b);
+    b->getGameObject()->handleCollision(a);
 }
 
 void CollisionEngine::resolveCollision(std::shared_ptr<Collider> a, std::shared_ptr<Collider> b)
 {
-	float touchingDistance;
-	float actualDistance;
+    float touchingDistance;
+    float actualDistance;
 
-	std::shared_ptr<Vector3f> posA;
-	std::shared_ptr<Vector3f> posB;
+    std::shared_ptr<Vector3f> posA;
+    std::shared_ptr<Vector3f> posB;
 
-	posA = a->getGameObject()->getTransform()->getPosition();
-	posB = b->getGameObject()->getTransform()->getPosition();
+    posA = a->getGameObject()->getTransform()->getPosition();
+    posB = b->getGameObject()->getTransform()->getPosition();
 
-	// get vector between a and b
+    // get vector between a and b. 
 
-	Vector3f delta(*posB.get());
-	delta.subtract(*posA.get());
+    Vector3f delta(posB);
+    delta.sub(posA);
 
-	// calculate actual distance
+    // calculate actual distance
+    actualDistance = delta.getLength();
 
-	actualDistance = delta.getLength();
+    // make this a direction
+    delta.normalise();
 
-	// make this a direction
+    // calculate the touching distance
+    touchingDistance = a->getRadius() + b->getRadius();
 
-	delta.normalise();
+    // scale the correction
+    delta.scale((touchingDistance-actualDistance)/2.0f);
 
-	// calculate the touching distance
-	touchingDistance = a->getRadius() + b->getRadius();
+    // fix this for a
+    posA->sub(delta);
 
-	// scale the correction
-	delta.scale((touchingDistance - actualDistance)/2.0f);
-
-	// fix this for a
-	posA->subtract(delta);
-
-	// fix this for b
-	posB->add(delta);
+    // fix this for b
+    posB->add(delta);
 }
